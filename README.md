@@ -103,31 +103,30 @@ Vereemo's privacy model enforces 90-day PII retention inside Supabase, with fiel
 ## How to verify a bundle
 
 ```bash
-1. Clone the ledger
+# 1. Clone the ledger
 git clone https://github.com/vereemo/ledger
 cd ledger
 
-2. Pick a bundle and recompute its Merkle root
+# 2. Pick a bundle and recompute its Merkle root
 node -e '
   const fs = require("fs"), { createHash } = require("crypto");
-  const lines = fs.readFileSync("bundles/2026-05-13.jsonl", "utf8")
-    .trim().split("\n").map(JSON.parse);
-  const sha = (s) => createHash("sha256").update(s).digest("hex");
-  let level = lines.map((l) => l.artifact_hash);
-  while (level.length > 1) {
-    const next = [];
-    for (let i = 0; i < level.length; i += 2)
-      next.push(sha(level[i] + (level[i+1] ?? level[i])));
-    level = next;
-  }
-  console.log("Recomputed Merkle root:", level[0]);
+  ...
 '
 
-3. Compare against the commit message of that day
+# 3. Compare against the commit message of that day
 git log --oneline -- bundles/2026-05-13.jsonl
+
 ```
 
 If the recomputed root matches the one in the commit message — and that commit is older than the OpenTimestamps Bitcoin block referenced in `permanence.ots_proof` — the bundle is provably authentic.
+
+```bash
+  "proof_summary": { ... },
+  "permanence": {
+    "ots_proof": "base64-ots-receipt",
+    "btc_block_height": null
+  }
+```
 
 ---
 
